@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext.js';
+import { PythonKingdomDiagram } from '../components/PythonKingdomDiagram.js';
 import {
   Castle,
   Trees,
@@ -512,245 +513,81 @@ export const PythonKingdomPage: React.FC<{ onNavigate: (page: string) => void }>
       {/* ===================================================================== */}
       {/* 1. INTERACTIVE KINGDOM MAP (ASCII DIAGRAM TRANSLATED TO INTERACTIVE UI) */}
       {/* ===================================================================== */}
+      {/* ===================================================================== */}
+      {/* 1. INTERACTIVE KINGDOM MAP (ASCII DIAGRAM & VISUAL TREE) */}
+      {/* ===================================================================== */}
       {activeRealm === 'hub' && (
-        <div className="space-y-6">
-          {/* Kingdom ASCII Structure Visualizer Card */}
-          <div className="rounded-3xl border border-slate-800 bg-slate-900/90 p-6 sm:p-8 shadow-2xl relative overflow-hidden">
-            <div className="text-center max-w-lg mx-auto space-y-2 mb-8">
-              <span className="text-[11px] font-mono tracking-widest text-amber-400 uppercase font-bold">
-                Civil Services Python Learning Odyssey
-              </span>
-              <h2 className="text-2xl font-black text-white font-['Space_Grotesk']">
-                Explore the Realms of Python Kingdom
-              </h2>
-              <p className="text-xs text-slate-400">
-                Choose a realm to explore. Solve puzzles in the forest, battle monsters in the desert, scale the loop mountains, and face the Bug Overlord at Function Castle!
-              </p>
-            </div>
+        <div className="space-y-8">
+          {/* Main Interactive Map & ASCII Blueprint Component */}
+          <PythonKingdomDiagram
+            onSelectRealm={(realm) => {
+              if (realm === 'mountains' && !completedRealms.forest && !completedRealms.desert) {
+                alert('Complete either Variable Forest or Logic Desert to unlock Loop Mountains!');
+                return;
+              }
+              if (realm === 'castle' && !completedRealms.mountains) {
+                alert('Complete Loop Mountains to unlock Function Castle and challenge the Final Boss!');
+                return;
+              }
+              setActiveRealm(realm);
+            }}
+            completedRealms={completedRealms}
+          />
 
-            {/* Visual Tree Node Graph matching user's architecture */}
-            <div className="max-w-3xl mx-auto py-2">
-              {/* Top Node: Python Kingdom Gateway */}
-              <div className="flex justify-center mb-6">
-                <div className="rounded-2xl border-2 border-amber-500/60 bg-gradient-to-r from-amber-500/20 to-orange-500/20 px-6 py-3 text-center shadow-lg shadow-amber-500/10">
-                  <div className="text-lg font-black text-white font-['Space_Grotesk'] flex items-center justify-center gap-2">
-                    <Castle className="h-5 w-5 text-amber-400" />
-                    <span>🏰 PYTHON KINGDOM</span>
-                  </div>
-                  <div className="text-[11px] text-amber-300 font-semibold mt-0.5">
-                    Royal Citadel & Capacity Realm
-                  </div>
-                </div>
-              </div>
-
-              {/* Trunk Connecting Line */}
-              <div className="w-0.5 h-6 bg-amber-500/50 mx-auto" />
-
-              {/* Horizontal Fork Bar */}
-              <div className="relative flex items-center justify-center">
-                <div className="w-3/4 sm:w-2/3 h-0.5 bg-slate-700 relative">
-                  <div className="absolute -top-1 left-0 w-2 h-2 rounded-full bg-emerald-400" />
-                  <div className="absolute -top-1 right-0 w-2 h-2 rounded-full bg-amber-400" />
-                  <div className="absolute -top-1 left-1/2 -translate-x-1/2 w-2 h-2 rounded-full bg-slate-500" />
-                </div>
-              </div>
-
-              {/* Realm Branch 1 & 2: Forest & Desert */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 my-6">
-                {/* Branch Left: 🌲 Variable Forest */}
+          {/* Realm Adventure Cards Grid */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            {realms.map((realm) => {
+              const Icon = realm.icon;
+              return (
                 <div
-                  onClick={() => setActiveRealm('forest')}
-                  className={`group rounded-3xl border p-6 transition-all duration-300 cursor-pointer text-left relative overflow-hidden ${
-                    completedRealms.forest
-                      ? 'border-emerald-500/60 bg-emerald-950/30 ring-1 ring-emerald-500/30'
-                      : 'border-slate-800 bg-slate-900/80 hover:border-emerald-500/50 hover:bg-slate-850 hover:shadow-xl hover:shadow-emerald-500/10'
+                  key={realm.id}
+                  onClick={() => {
+                    if (realm.id === 'mountains' && !completedRealms.forest && !completedRealms.desert) {
+                      alert('Complete either Variable Forest or Logic Desert to unlock Loop Mountains!');
+                      return;
+                    }
+                    if (realm.id === 'castle' && !completedRealms.mountains) {
+                      alert('Complete Loop Mountains to unlock Function Castle and challenge the Final Boss!');
+                      return;
+                    }
+                    setActiveRealm(realm.id);
+                  }}
+                  className={`rounded-2xl border p-5 transition-all duration-300 text-left relative overflow-hidden flex flex-col justify-between ${
+                    realm.completed
+                      ? 'border-emerald-500/50 bg-emerald-950/20 shadow-md'
+                      : realm.unlocked
+                      ? 'border-slate-800 bg-slate-900/90 hover:border-amber-500/50 hover:bg-slate-850 cursor-pointer shadow-lg'
+                      : 'border-slate-800/40 bg-slate-950/40 opacity-60 cursor-not-allowed'
                   }`}
                 >
-                  <div className="flex items-start justify-between">
-                    <div className="p-3 rounded-2xl bg-emerald-500/20 text-emerald-400 group-hover:scale-110 transition-transform">
-                      <Trees className="h-6 w-6" />
+                  <div>
+                    <div className="flex items-center justify-between mb-3">
+                      <div className="p-2.5 rounded-xl bg-slate-800 text-amber-400">
+                        <Icon className="h-5 w-5" />
+                      </div>
+                      <span className="text-[10px] font-bold px-2 py-0.5 rounded-full border border-slate-700 bg-slate-800 text-slate-300">
+                        {realm.badge}
+                      </span>
                     </div>
-                    {completedRealms.forest ? (
-                      <span className="flex items-center gap-1 rounded-full bg-emerald-500/20 text-emerald-300 text-[10px] font-bold px-2.5 py-1 border border-emerald-500/30">
-                        <CheckCircle2 className="h-3 w-3" />
-                        <span>Completed</span>
-                      </span>
-                    ) : (
-                      <span className="rounded-full bg-slate-800 text-emerald-400 text-[10px] font-bold px-2.5 py-1 border border-emerald-500/20">
-                        Realm 1
-                      </span>
-                    )}
-                  </div>
 
-                  <h3 className="text-lg font-bold text-white font-['Space_Grotesk'] mt-4">
-                    🌲 Variable Forest
-                  </h3>
-                  <div className="text-xs font-semibold text-emerald-400 flex items-center gap-1 mt-0.5">
-                    <Puzzle className="h-3.5 w-3.5" />
-                    <span>🧩 Solve puzzles</span>
-                  </div>
-                  <p className="text-xs text-slate-400 mt-2 leading-relaxed">
-                    Master primitive types, memory boxes, f-strings, and list mutations among ancient trees.
-                  </p>
-
-                  <div className="mt-4 pt-3 border-t border-slate-800 flex items-center justify-between text-xs font-bold text-emerald-400">
-                    <span>Enter Forest</span>
-                    <ArrowRight className="h-4 w-4 group-hover:translate-x-1 transition-transform" />
-                  </div>
-                </div>
-
-                {/* Branch Right: 🏜️ Logic Desert */}
-                <div
-                  onClick={() => setActiveRealm('desert')}
-                  className={`group rounded-3xl border p-6 transition-all duration-300 cursor-pointer text-left relative overflow-hidden ${
-                    completedRealms.desert
-                      ? 'border-amber-500/60 bg-amber-950/30 ring-1 ring-amber-500/30'
-                      : 'border-slate-800 bg-slate-900/80 hover:border-amber-500/50 hover:bg-slate-850 hover:shadow-xl hover:shadow-amber-500/10'
-                  }`}
-                >
-                  <div className="flex items-start justify-between">
-                    <div className="p-3 rounded-2xl bg-amber-500/20 text-amber-400 group-hover:scale-110 transition-transform">
-                      <Sun className="h-6 w-6" />
+                    <h4 className="text-base font-bold text-white font-['Space_Grotesk']">
+                      {realm.name}
+                    </h4>
+                    <div className="text-xs font-semibold text-amber-400 mt-0.5">
+                      {realm.tagline}
                     </div>
-                    {completedRealms.desert ? (
-                      <span className="flex items-center gap-1 rounded-full bg-emerald-500/20 text-emerald-300 text-[10px] font-bold px-2.5 py-1 border border-emerald-500/30">
-                        <CheckCircle2 className="h-3 w-3" />
-                        <span>Completed</span>
-                      </span>
-                    ) : (
-                      <span className="rounded-full bg-slate-800 text-amber-400 text-[10px] font-bold px-2.5 py-1 border border-amber-500/20">
-                        Realm 2
-                      </span>
-                    )}
+                    <p className="text-xs text-slate-400 mt-2 leading-relaxed">
+                      {realm.description}
+                    </p>
                   </div>
-
-                  <h3 className="text-lg font-bold text-white font-['Space_Grotesk'] mt-4">
-                    🏜️ Logic Desert
-                  </h3>
-                  <div className="text-xs font-semibold text-amber-400 flex items-center gap-1 mt-0.5">
-                    <Sword className="h-3.5 w-3.5" />
-                    <span>⚔️ Battle enemies</span>
-                  </div>
-                  <p className="text-xs text-slate-400 mt-2 leading-relaxed">
-                    Slay the Indentation Scorpion and boolean sandstorms with strict conditionals and ternary strikes.
-                  </p>
 
                   <div className="mt-4 pt-3 border-t border-slate-800 flex items-center justify-between text-xs font-bold text-amber-400">
-                    <span>Engage in Battle</span>
-                    <ArrowRight className="h-4 w-4 group-hover:translate-x-1 transition-transform" />
+                    <span>{realm.completed ? 'Replay Realm' : realm.unlocked ? 'Enter Realm' : '🔒 Locked'}</span>
+                    <ArrowRight className="h-3.5 w-3.5" />
                   </div>
                 </div>
-              </div>
-
-              {/* Converging Stem to Loop Mountains */}
-              <div className="flex flex-col items-center my-2">
-                <div className="w-3/4 sm:w-2/3 h-0.5 bg-slate-700 relative">
-                  <div className="absolute -top-1 left-1/2 -translate-x-1/2 w-2 h-2 rounded-full bg-blue-400" />
-                </div>
-                <div className="w-0.5 h-6 bg-blue-500/50" />
-              </div>
-
-              {/* Central Mid Node: 🏔️ Loop Mountains */}
-              <div className="max-w-md mx-auto my-4">
-                <div
-                  onClick={() => {
-                    if (completedRealms.forest || completedRealms.desert) {
-                      setActiveRealm('mountains');
-                    } else {
-                      alert('Complete either Variable Forest or Logic Desert to unlock Loop Mountains!');
-                    }
-                  }}
-                  className={`group rounded-3xl border p-6 transition-all duration-300 text-left relative overflow-hidden ${
-                    completedRealms.mountains
-                      ? 'border-blue-500/60 bg-blue-950/30 ring-1 ring-blue-500/30 cursor-pointer'
-                      : completedRealms.forest || completedRealms.desert
-                      ? 'border-slate-800 bg-slate-900/80 hover:border-blue-500/50 cursor-pointer'
-                      : 'border-slate-800/60 bg-slate-950/40 opacity-70 cursor-not-allowed'
-                  }`}
-                >
-                  <div className="flex items-start justify-between">
-                    <div className="p-3 rounded-2xl bg-blue-500/20 text-blue-400 group-hover:scale-110 transition-transform">
-                      <Mountain className="h-6 w-6" />
-                    </div>
-                    {completedRealms.mountains ? (
-                      <span className="flex items-center gap-1 rounded-full bg-emerald-500/20 text-emerald-300 text-[10px] font-bold px-2.5 py-1 border border-emerald-500/30">
-                        <CheckCircle2 className="h-3 w-3" />
-                        <span>Completed</span>
-                      </span>
-                    ) : (
-                      <span className="rounded-full bg-slate-800 text-blue-400 text-[10px] font-bold px-2.5 py-1 border border-blue-500/20">
-                        Realm 3
-                      </span>
-                    )}
-                  </div>
-
-                  <h3 className="text-lg font-bold text-white font-['Space_Grotesk'] mt-4">
-                    🏔️ Loop Mountains
-                  </h3>
-                  <div className="text-xs font-semibold text-blue-400 flex items-center gap-1 mt-0.5">
-                    <Target className="h-3.5 w-3.5" />
-                    <span>🎯 Complete missions</span>
-                  </div>
-                  <p className="text-xs text-slate-400 mt-2 leading-relaxed">
-                    Ascend via for-loops, dodge infinite while-abysses, and master one-line list comprehensions.
-                  </p>
-
-                  <div className="mt-4 pt-3 border-t border-slate-800 flex items-center justify-between text-xs font-bold text-blue-400">
-                    <span>{completedRealms.forest || completedRealms.desert ? 'Ascend Summit' : '🔒 Locked'}</span>
-                    <ArrowRight className="h-4 w-4 group-hover:translate-x-1 transition-transform" />
-                  </div>
-                </div>
-              </div>
-
-              {/* Connecting Line to Function Castle */}
-              <div className="w-0.5 h-6 bg-purple-500/50 mx-auto" />
-
-              {/* Final Climax Node: 🏰 Function Castle & 👑 FINAL BOSS */}
-              <div className="max-w-md mx-auto my-4">
-                <div
-                  onClick={() => {
-                    if (completedRealms.mountains) {
-                      setActiveRealm('castle');
-                    } else {
-                      alert('Complete Loop Mountains to unlock Function Castle and challenge the Final Boss!');
-                    }
-                  }}
-                  className={`group rounded-3xl border p-6 transition-all duration-300 text-left relative overflow-hidden ${
-                    completedRealms.castle
-                      ? 'border-purple-500/60 bg-purple-950/40 ring-2 ring-purple-500/40 shadow-xl cursor-pointer'
-                      : completedRealms.mountains
-                      ? 'border-purple-500/40 bg-slate-900/90 hover:border-purple-500 cursor-pointer shadow-lg'
-                      : 'border-slate-800/60 bg-slate-950/40 opacity-70 cursor-not-allowed'
-                  }`}
-                >
-                  <div className="flex items-start justify-between">
-                    <div className="p-3 rounded-2xl bg-purple-500/20 text-purple-300 group-hover:scale-110 transition-transform">
-                      <Castle className="h-6 w-6" />
-                    </div>
-                    <span className="flex items-center gap-1 rounded-full bg-purple-500/20 text-purple-300 text-[10px] font-black px-3 py-1 border border-purple-500/30">
-                      <Crown className="h-3.5 w-3.5 text-amber-400" />
-                      <span>👑 FINAL BOSS</span>
-                    </span>
-                  </div>
-
-                  <h3 className="text-xl font-extrabold text-white font-['Space_Grotesk'] mt-4 flex items-center gap-2">
-                    <span>🏰 Function Castle</span>
-                  </h3>
-                  <div className="text-xs font-semibold text-purple-400 flex items-center gap-1 mt-0.5">
-                    <Zap className="h-3.5 w-3.5 text-amber-400" />
-                    <span>Defeat the Bug Overlord (Recursion Dragon)</span>
-                  </div>
-                  <p className="text-xs text-slate-400 mt-2 leading-relaxed">
-                    The ultimate trial: encapsulate logic with `def`, wield `*args/**kwargs`, and unleash lambda strikes to liberate the kingdom.
-                  </p>
-
-                  <div className="mt-4 pt-3 border-t border-slate-800 flex items-center justify-between text-xs font-extrabold text-purple-300">
-                    <span>{completedRealms.mountains ? '⚔️ Enter Boss Gauntlet' : '🔒 Clear Loop Mountains First'}</span>
-                    <ArrowRight className="h-4 w-4 group-hover:translate-x-1 transition-transform" />
-                  </div>
-                </div>
-              </div>
-            </div>
+              );
+            })}
           </div>
         </div>
       )}

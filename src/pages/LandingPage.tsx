@@ -18,7 +18,8 @@ import {
   GraduationCap,
   LogIn,
   Mail,
-  UserPlus
+  UserPlus,
+  Castle
 } from 'lucide-react';
 import { ShowcasedCourses } from '../components/ShowcasedCourses.js';
 import { NationalStandingsMap } from '../components/NationalStandingsMap.js';
@@ -52,12 +53,12 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onNavigate }) => {
     },
     {
       id: 'games',
-      title: 'Interactive SkillQuest',
-      subtitle: 'Educational Games & AI Quizzes',
-      description: 'Reinforce statistical principles through interactive sprint games and dynamic difficulty quizzes.',
-      icon: Gamepad2,
-      tag: 'Gamified Learning',
-      color: 'border-emerald-200 hover:border-emerald-500 bg-emerald-50/50'
+      title: '🏰 Python Kingdom RPG',
+      subtitle: 'Variable Forest • Logic Desert • Loop Mt • Function Castle',
+      description: 'Playable RPG feature: solve puzzles, battle syntax monsters, conquer loop missions, and defeat the Bug Overlord!',
+      icon: Castle,
+      tag: 'Playable RPG Game',
+      color: 'border-amber-200 hover:border-amber-500 bg-amber-50/50'
     },
     {
       id: 'recommendations',
@@ -364,24 +365,24 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onNavigate }) => {
                 </div>
               </div>
 
-              <div className="rounded-2xl bg-purple-50/70 border border-purple-200/80 p-5 space-y-3 flex flex-col justify-between">
+              <div className="rounded-2xl bg-amber-50/70 border border-amber-200/80 p-5 space-y-3 flex flex-col justify-between">
                 <div className="space-y-3">
-                  <div className="h-10 w-10 rounded-xl bg-purple-600 text-white flex items-center justify-center font-bold shadow-xs">
-                    <Gamepad2 className="h-5 w-5" />
+                  <div className="h-10 w-10 rounded-xl bg-gradient-to-br from-amber-500 to-orange-500 text-slate-950 flex items-center justify-center font-bold shadow-xs">
+                    <Castle className="h-5 w-5 text-slate-950" />
                   </div>
                   <h3 className="font-extrabold text-[#0F2942] text-sm sm:text-base">
-                    5-Mode Gamified Mastery
+                    🏰 Python Kingdom RPG Game
                   </h3>
                   <p className="text-xs text-slate-600 leading-relaxed">
-                    Learn through dynamic video lectures, concept reader modules, adaptive AI quizzes, and SkillQuest mini-games. Earn Karma Coins, streaks, and verified digital certificates.
+                    Master programming fundamentals by conquering 🌲 Variable Forest puzzles, 🏜️ Logic Desert battles, 🏔️ Loop Mountain missions, and the 🏰 Function Castle Final Boss!
                   </p>
                 </div>
                 <div className="pt-3">
                   <button
-                    onClick={() => onNavigate('course_map')}
-                    className="w-full py-2.5 px-4 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs flex items-center justify-center gap-2 shadow-xs transition-colors"
+                    onClick={() => onNavigate('games')}
+                    className="w-full py-2.5 px-4 rounded-xl bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-slate-950 font-black text-xs flex items-center justify-center gap-2 shadow-xs transition-colors cursor-pointer"
                   >
-                    <span>Browse Student Skill Catalog</span>
+                    <span>Play Python Kingdom RPG</span>
                     <ArrowRight className="h-3.5 w-3.5" />
                   </button>
                 </div>

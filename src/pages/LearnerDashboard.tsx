@@ -22,7 +22,8 @@ import {
   GraduationCap,
   FileDown,
   Loader2,
-  Check
+  Check,
+  Castle
 } from 'lucide-react';
 import { ShowcasedCourses } from '../components/ShowcasedCourses.js';
 import { CompetencyRadarChart } from '../components/CompetencyRadarChart.js';
@@ -30,6 +31,7 @@ import { DailyStreakTracker } from '../components/DailyStreakTracker.js';
 import { DailyGoalTracker } from '../components/DailyGoalTracker.js';
 import { DailyNugget } from '../components/DailyNugget.js';
 import { generateLearnerSummaryPDF, LearnerReportData } from '../utils/pdfGenerator.js';
+import { PythonKingdomDiagram } from '../components/PythonKingdomDiagram.js';
 
 interface LearnerDashboardProps {
   onNavigate: (page: string) => void;
@@ -520,6 +522,48 @@ export const LearnerDashboard: React.FC<LearnerDashboardProps> = ({ onNavigate }
 
       {/* Showcased Courses Carousel from Screenshot */}
       <ShowcasedCourses onNavigate={onNavigate} />
+
+      {/* 🏰 Featured Interactive RPG World: PYTHON KINGDOM */}
+      <div className="space-y-4 pt-2">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+          <div className="flex items-center gap-3">
+            <div className="p-2.5 rounded-2xl bg-amber-500/20 text-amber-600 border border-amber-500/30">
+              <Castle className="h-6 w-6 text-amber-600" />
+            </div>
+            <div>
+              <div className="flex items-center gap-2">
+                <h3 className="text-lg sm:text-xl font-extrabold text-[#0F2942] font-['Space_Grotesk']">
+                  🏰 Featured RPG Quest: PYTHON KINGDOM
+                </h3>
+                <span className="rounded-full bg-amber-100 text-amber-900 border border-amber-300 text-[10px] font-black px-2.5 py-0.5">
+                  Playable RPG
+                </span>
+              </div>
+              <p className="text-xs text-slate-600 mt-0.5">
+                Conquer 🌲 Variable Forest, 🏜️ Logic Desert, 🏔️ Loop Mountains, and storm 🏰 Function Castle to defeat the Bug Overlord!
+              </p>
+            </div>
+          </div>
+          <button
+            onClick={() => onNavigate('games')}
+            className="flex items-center gap-2 px-5 py-2.5 rounded-2xl bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-400 hover:to-orange-400 text-slate-950 font-black text-xs shadow-md hover:shadow-lg transition-all self-start sm:self-auto cursor-pointer"
+          >
+            <span>Launch Python Kingdom</span>
+            <ArrowRight className="h-4 w-4" />
+          </button>
+        </div>
+
+        {/* Interactive RPG Blueprint Component */}
+        <PythonKingdomDiagram
+          onSelectRealm={(realm) => onNavigate('games')}
+          completedRealms={{
+            forest: false,
+            desert: false,
+            mountains: false,
+            castle: false
+          }}
+        />
+      </div>
 
       {/* 4. Gamified SkillQuest Quick Jump Tiles */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-5">
