@@ -1,0 +1,7 @@
+{
+  "name": "Pragya AI",
+  "description": "Pragya AI (प्रज्ञा AI): Empowering India's civil services and all students to assess competency shortfalls, explore 5-mode interactive learning paths, track real-time state & ministry performance standings, and master national standards through gamified educational quests to increase course skills and learn new skills.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
+
