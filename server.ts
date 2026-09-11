@@ -3,7 +3,7 @@ import path from 'path';
 import { createServer as createViteServer } from 'vite';
 import { db } from './server/db.js';
 import { chromaVectorStore } from './server/vector_store.js';
-import { generateQuizQuestionsFromChunks, generateAIExplanation, generateDailyNugget } from './server/gemini.js';
+import { generateQuizQuestionsFromChunks, generateAIExplanation, generateDailyNugget, generateDocumentSummary } from './server/gemini.js';
 import { generatePersonalizedRecommendations } from './server/services/recommendation_engine.js';
 import { igotService } from './server/services/igot_service.js';
 import { generateToken, verifyToken, getUserByEmail, getUserById, TokenPayload } from './server/services/auth_service.js';
@@ -608,7 +608,7 @@ app.post('/api/daily-nugget/complete', authenticateToken, (req: AuthenticatedReq
 // DOCUMENT PROCESSING & VECTOR PIPELINE
 // ----------------------------------------------------
 app.post('/api/documents/upload', authenticateToken, async (req: AuthenticatedRequest, res) => {
-  const { filename, fileType, textContent, fileSize } = req.body;
+  const { filename, title, fileType, textContent, fileSize, category, pdfData } = req.body;
 
   if (!textContent || textContent.trim().length === 0) {
     return res.status(400).json({ error: 'No text content provided for extraction' });
@@ -617,36 +617,45 @@ app.post('/api/documents/upload', authenticateToken, async (req: AuthenticatedRe
   const docId = `mat_${Date.now()}`;
   const detectedCompetencies: string[] = [];
 
+  if (category) {
+    detectedCompetencies.push(category);
+  }
   if (textContent.toLowerCase().includes('visual') || textContent.toLowerCase().includes('chart')) {
-    detectedCompetencies.push('Data Visualization');
+    if (!detectedCompetencies.includes('Data Visualization')) detectedCompetencies.push('Data Visualization');
   }
   if (textContent.toLowerCase().includes('sampling') || textContent.toLowerCase().includes('survey')) {
-    detectedCompetencies.push('Survey Methods & Sampling');
+    if (!detectedCompetencies.includes('Survey Methods & Sampling')) detectedCompetencies.push('Survey Methods & Sampling');
   }
   if (textContent.toLowerCase().includes('hypothesis') || textContent.toLowerCase().includes('error')) {
-    detectedCompetencies.push('Statistical Inference');
+    if (!detectedCompetencies.includes('Statistical Inference')) detectedCompetencies.push('Statistical Inference');
   }
   if (detectedCompetencies.length === 0) detectedCompetencies.push('Official Statistics');
 
+  const resolvedName = (filename || title || (fileType === 'note' ? 'Study_Notes.txt' : 'Uploaded_Document.pdf')).trim();
+
   // Chunk and store in Chroma vector store
   const chunks = chromaVectorStore.addDocument(docId, textContent, {
-    filename,
+    filename: resolvedName,
     competency: detectedCompetencies[0],
     difficulty: 'Intermediate'
   });
 
   const materialEntry: any = {
     id: docId,
-    filename,
-    fileType: fileType || 'pdf',
+    filename: resolvedName,
+    title: title || resolvedName,
+    fileType: fileType || (resolvedName.endsWith('.pdf') ? 'pdf' : 'note'),
     fileSize: fileSize || textContent.length * 2,
-    uploadedBy: req.user!.userId,
+    uploadedBy: req.user?.userId || 'usr_learner_1',
+    uploaderName: req.user?.name || 'Authorized Officer',
     uploadedAt: new Date().toISOString(),
     chunkCount: chunks.length,
     status: 'quiz_ready',
     extractedTextPreview: textContent.slice(0, 300) + '...',
     textContent,
-    suggestedCompetencies: detectedCompetencies
+    pdfData: pdfData || null,
+    suggestedCompetencies: detectedCompetencies,
+    category: category || detectedCompetencies[0]
   };
 
   db.uploadedMaterials.unshift(materialEntry);
@@ -658,10 +667,35 @@ app.post('/api/documents/upload', authenticateToken, async (req: AuthenticatedRe
   });
 });
 
+app.get('/api/documents', (req, res) => {
+  res.json(db.uploadedMaterials);
+});
+
 app.get('/api/documents/:id', (req, res) => {
   const doc = db.uploadedMaterials.find((m) => m.id === req.params.id);
   if (!doc) return res.status(404).json({ error: 'Document not found' });
   res.json(doc);
+});
+
+app.delete('/api/documents/:id', authenticateToken, (req, res) => {
+  const index = db.uploadedMaterials.findIndex((m) => m.id === req.params.id);
+  if (index === -1) {
+    return res.status(404).json({ error: 'Document not found' });
+  }
+  const deleted = db.uploadedMaterials.splice(index, 1)[0];
+  res.json({ message: 'Document deleted successfully', id: deleted.id });
+});
+
+app.post('/api/documents/:id/summarize', async (req, res) => {
+  const doc = db.uploadedMaterials.find((m) => m.id === req.params.id);
+  if (!doc) return res.status(404).json({ error: 'Document not found' });
+
+  try {
+    const summary = await generateDocumentSummary(doc.textContent || doc.extractedTextPreview, doc.filename);
+    res.json(summary);
+  } catch (error: any) {
+    res.status(500).json({ error: 'Failed to generate summary', details: error?.message });
+  }
 });
 
 // ----------------------------------------------------

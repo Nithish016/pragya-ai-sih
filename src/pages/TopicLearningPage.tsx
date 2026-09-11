@@ -25,15 +25,26 @@ import {
   HelpCircle,
   Trophy,
   ExternalLink,
-  BookOpen
+  BookOpen,
+  UploadCloud,
+  Download,
+  Copy,
+  Check,
+  RefreshCw,
+  X
 } from 'lucide-react';
 
 interface TopicLearningPageProps {
   onNavigate: (page: string) => void;
   initialMode?: 'video' | 'ebook' | 'pdf' | 'game' | 'quiz';
+  onOpenUploadModal?: () => void;
 }
 
-export const TopicLearningPage: React.FC<TopicLearningPageProps> = ({ onNavigate, initialMode = 'video' }) => {
+export const TopicLearningPage: React.FC<TopicLearningPageProps> = ({
+  onNavigate,
+  initialMode = 'video',
+  onOpenUploadModal
+}) => {
   const { user, profile, addXP, addCoins, triggerConfetti, simulateCompetencyBoost } = useAuth();
   const [activeTab, setActiveTab] = useState<'video' | 'ebook' | 'pdf' | 'game' | 'quiz'>(initialMode);
 
@@ -94,10 +105,80 @@ export const TopicLearningPage: React.FC<TopicLearningPageProps> = ({ onNavigate
   };
 
   // ----------------------------------------------------
-  // PDF STATE
+  // PDF & NOTES HUB STATE
   // ----------------------------------------------------
   const [pdfPage, setPdfPage] = useState(1);
   const [pdfZoom, setPdfZoom] = useState(100);
+  const [documentsList, setDocumentsList] = useState<any[]>([]);
+  const [selectedDocId, setSelectedDocId] = useState<string>('default');
+  const [isSummarizing, setIsSummarizing] = useState(false);
+  const [summaryData, setSummaryData] = useState<any | null>(null);
+  const [showSummaryModal, setShowSummaryModal] = useState(false);
+  const [copiedText, setCopiedText] = useState(false);
+
+  const fetchDocuments = async () => {
+    try {
+      const res = await fetch('/api/documents');
+      if (res.ok) {
+        const data = await res.json();
+        setDocumentsList(data);
+      }
+    } catch (e) {
+      console.warn('Could not fetch documents:', e);
+    }
+  };
+
+  useEffect(() => {
+    fetchDocuments();
+  }, []);
+
+  const handleGenerateSummary = async () => {
+    setIsSummarizing(true);
+    setShowSummaryModal(true);
+    try {
+      if (selectedDocId === 'default') {
+        const activeDoc = documentsList[0];
+        if (activeDoc) {
+          const res = await fetch(`/api/documents/${activeDoc.id}/summarize`);
+          if (res.ok) {
+            const data = await res.json();
+            setSummaryData(data);
+            return;
+          }
+        }
+        setSummaryData({
+          executiveSummary: 'This official MoSPI Standards Manual establishes visual dissemination protocols across all survey divisions. Compliance ensures cognitive accuracy in policy decision-making by prohibiting deceptive 3D formats and enforcing zero baselines.',
+          keyPoints: [
+            'Cleveland & McGill perceptual research demonstrates lowest reader estimation error in common-scale bar charts.',
+            'Zero baseline enforcement is mandatory to prevent visual magnification of non-significant changes.',
+            'Digital reporting tables must comply with WCAG AA minimum 4.5:1 color contrast.'
+          ],
+          detectedCompetencies: ['Data Visualization', 'Official Statistics'],
+          recommendedActionItems: [
+            'Complete the adaptive retention quiz to verify standard compliance.',
+            'Audit recent department bulletins against the zero baseline checklist.'
+          ],
+          readingTimeMinutes: 4
+        });
+      } else {
+        const res = await fetch(`/api/documents/${selectedDocId}/summarize`);
+        if (res.ok) {
+          const data = await res.json();
+          setSummaryData(data);
+        }
+      }
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setIsSummarizing(false);
+    }
+  };
+
+  const handleCopyNoteContent = (text: string) => {
+    navigator.clipboard.writeText(text);
+    setCopiedText(true);
+    setTimeout(() => setCopiedText(false), 2000);
+  };
 
   const handleMarkPdfComplete = () => {
     if (!completedModes.pdf) {
@@ -686,90 +767,290 @@ export const TopicLearningPage: React.FC<TopicLearningPageProps> = ({ onNavigate
       )}
 
       {/* ========================================================================= */}
-      {/* MODE 3: PDF VIEWER */}
+      {/* MODE 3: PDF VIEWER & STUDY NOTES HUB */}
       {/* ========================================================================= */}
       {activeTab === 'pdf' && (
         <div className="rounded-3xl border border-slate-800 bg-slate-900/80 p-6 shadow-xl space-y-4">
           {/* PDF Controls Header */}
           <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-800 pb-3">
-            <div className="flex items-center gap-2">
-              <FileText className="h-5 w-5 text-rose-400" />
+            <div className="flex items-center gap-3">
+              <div className="p-2 rounded-xl bg-rose-500/20 text-rose-400">
+                <FileText className="h-5 w-5" />
+              </div>
               <div>
-                <div className="text-xs font-bold text-white">MoSPI_Data_Visualization_Guidelines_2025.pdf</div>
-                <div className="text-[10px] text-slate-400">Indexed in ChromaDB Semantic Vector Store</div>
+                {/* Document Selector Dropdown */}
+                <div className="flex items-center gap-2">
+                  <select
+                    value={selectedDocId}
+                    onChange={(e) => {
+                      setSelectedDocId(e.target.value);
+                      setPdfPage(1);
+                    }}
+                    className="rounded-xl border border-slate-700 bg-slate-800 px-3 py-1.5 text-xs font-bold text-white focus:outline-none focus:border-rose-500 cursor-pointer max-w-xs sm:max-w-md truncate"
+                  >
+                    <option value="default">
+                      📄 MoSPI_Data_Visualization_Guidelines_2025.pdf (Official Manual)
+                    </option>
+                    {documentsList.map((doc) => (
+                      <option key={doc.id} value={doc.id}>
+                        {doc.fileType === 'note' ? '📝 Note:' : '📄 PDF:'} {doc.filename || doc.title} ({doc.category || 'MoSPI'})
+                      </option>
+                    ))}
+                  </select>
+
+                  <span className="hidden sm:inline-block text-[10px] bg-slate-800 text-slate-400 px-2 py-1 rounded font-mono">
+                    ChromaDB Vector Store
+                  </span>
+                </div>
               </div>
             </div>
 
-            <div className="flex items-center gap-2">
+            {/* Header Right Actions */}
+            <div className="flex flex-wrap items-center gap-2">
+              {/* Upload New Document/Notes Button */}
+              {onOpenUploadModal && (
+                <button
+                  onClick={onOpenUploadModal}
+                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-orange-600 hover:bg-orange-500 text-white text-xs font-bold transition-all shadow-sm cursor-pointer"
+                  title="Upload a new PDF or write study notes"
+                >
+                  <UploadCloud className="h-3.5 w-3.5" />
+                  <span>Upload PDF / Notes</span>
+                </button>
+              )}
+
+              {/* AI Key Takeaways Summary Action */}
               <button
-                onClick={() => setPdfZoom((prev) => Math.max(75, prev - 15))}
-                className="p-1.5 rounded-lg bg-slate-800 text-slate-300 hover:bg-slate-700"
+                onClick={handleGenerateSummary}
+                disabled={isSummarizing}
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-purple-600/30 hover:bg-purple-600/50 border border-purple-500/40 text-purple-200 text-xs font-bold transition-all"
+                title="Generate AI Executive Summary & Action Items"
               >
-                <ZoomOut className="h-3.5 w-3.5" />
-              </button>
-              <span className="text-xs text-slate-300 font-mono">{pdfZoom}%</span>
-              <button
-                onClick={() => setPdfZoom((prev) => Math.min(150, prev + 15))}
-                className="p-1.5 rounded-lg bg-slate-800 text-slate-300 hover:bg-slate-700"
-              >
-                <ZoomIn className="h-3.5 w-3.5" />
+                <Sparkles className="h-3.5 w-3.5 text-purple-300" />
+                <span>{isSummarizing ? 'Analyzing...' : 'AI Summary'}</span>
               </button>
 
-              <div className="h-4 w-px bg-slate-800 mx-1" />
+              {/* Zoom and Page controls */}
+              <div className="flex items-center gap-1 bg-slate-800 rounded-xl p-0.5 border border-slate-700">
+                <button
+                  onClick={() => setPdfZoom((prev) => Math.max(75, prev - 15))}
+                  className="p-1.5 rounded-lg text-slate-300 hover:bg-slate-700"
+                  title="Zoom Out"
+                >
+                  <ZoomOut className="h-3.5 w-3.5" />
+                </button>
+                <span className="text-[11px] text-slate-300 font-mono px-1">{pdfZoom}%</span>
+                <button
+                  onClick={() => setPdfZoom((prev) => Math.min(150, prev + 15))}
+                  className="p-1.5 rounded-lg text-slate-300 hover:bg-slate-700"
+                  title="Zoom In"
+                >
+                  <ZoomIn className="h-3.5 w-3.5" />
+                </button>
+              </div>
 
-              <button
-                onClick={() => setPdfPage((prev) => Math.max(1, prev - 1))}
-                className="p-1.5 rounded-lg bg-slate-800 text-slate-300 hover:bg-slate-700"
-              >
-                <ChevronLeft className="h-3.5 w-3.5" />
-              </button>
-              <span className="text-xs text-slate-300">Page {pdfPage} of 6</span>
-              <button
-                onClick={() => setPdfPage((prev) => Math.min(6, prev + 1))}
-                className="p-1.5 rounded-lg bg-slate-800 text-slate-300 hover:bg-slate-700"
-              >
-                <ChevronRight className="h-3.5 w-3.5" />
-              </button>
+              <div className="flex items-center gap-1 bg-slate-800 rounded-xl p-0.5 border border-slate-700">
+                <button
+                  onClick={() => setPdfPage((prev) => Math.max(1, prev - 1))}
+                  className="p-1.5 rounded-lg text-slate-300 hover:bg-slate-700"
+                  title="Previous Page"
+                >
+                  <ChevronLeft className="h-3.5 w-3.5" />
+                </button>
+                <span className="text-[11px] text-slate-300 px-1">Page {pdfPage}</span>
+                <button
+                  onClick={() => setPdfPage((prev) => prev + 1)}
+                  className="p-1.5 rounded-lg text-slate-300 hover:bg-slate-700"
+                  title="Next Page"
+                >
+                  <ChevronRight className="h-3.5 w-3.5" />
+                </button>
+              </div>
             </div>
           </div>
 
-          {/* Rendered PDF Simulation Page */}
-          <div className="mx-auto max-w-2xl rounded-2xl border border-slate-700/60 bg-white text-slate-900 p-8 shadow-2xl space-y-4 font-serif">
-            <div className="text-center border-b-2 border-slate-900 pb-3">
-              <div className="text-[10px] font-bold tracking-widest uppercase text-slate-600">
-                GOVERNMENT OF INDIA • MINISTRY OF STATISTICS & PROGRAMME IMPLEMENTATION
+          {/* Rendered Document Viewer */}
+          {(() => {
+            const activeCustomDoc = documentsList.find((d) => d.id === selectedDocId);
+            const isCustomNote = activeCustomDoc?.fileType === 'note';
+
+            if (activeCustomDoc && isCustomNote) {
+              return (
+                <div
+                  className="mx-auto max-w-3xl rounded-2xl border border-slate-700/80 bg-slate-900 text-slate-100 p-6 sm:p-8 shadow-2xl space-y-4"
+                  style={{ zoom: `${pdfZoom}%` }}
+                >
+                  <div className="flex items-center justify-between border-b border-slate-800 pb-3">
+                    <div className="flex items-center gap-2">
+                      <span className="rounded bg-amber-500/20 text-amber-300 text-[10px] font-bold px-2 py-0.5 border border-amber-500/30">
+                        Study Notes
+                      </span>
+                      <h2 className="text-base font-bold text-white font-['Space_Grotesk']">
+                        {activeCustomDoc.title || activeCustomDoc.filename}
+                      </h2>
+                    </div>
+                    <button
+                      onClick={() => handleCopyNoteContent(activeCustomDoc.textContent)}
+                      className="flex items-center gap-1 text-[11px] px-2.5 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 transition-colors"
+                    >
+                      {copiedText ? <Check className="h-3 w-3 text-emerald-400" /> : <Copy className="h-3 w-3" />}
+                      <span>{copiedText ? 'Copied' : 'Copy Notes'}</span>
+                    </button>
+                  </div>
+
+                  <div className="prose prose-invert max-w-none text-xs leading-relaxed text-slate-300 whitespace-pre-wrap font-mono bg-slate-950/60 p-4 rounded-xl border border-slate-800">
+                    {activeCustomDoc.textContent}
+                  </div>
+
+                  <div className="flex items-center justify-between text-[11px] text-slate-400 border-t border-slate-800 pt-3">
+                    <span>Uploaded by {activeCustomDoc.uploaderName || 'Officer'}</span>
+                    <span className="font-mono">{activeCustomDoc.chunkCount} ChromaDB Chunks Indexed</span>
+                  </div>
+                </div>
+              );
+            }
+
+            if (activeCustomDoc && !isCustomNote) {
+              return (
+                <div
+                  className="mx-auto max-w-2xl rounded-2xl border border-slate-700/60 bg-white text-slate-900 p-8 shadow-2xl space-y-4 font-serif"
+                  style={{ zoom: `${pdfZoom}%` }}
+                >
+                  <div className="text-center border-b-2 border-slate-900 pb-3">
+                    <div className="text-[10px] font-bold tracking-widest uppercase text-slate-600">
+                      GOVERNMENT OF INDIA • STATISTICAL CAPACITY CADRE
+                    </div>
+                    <h2 className="text-lg font-black tracking-tight text-slate-900 mt-1 uppercase">
+                      {activeCustomDoc.title || activeCustomDoc.filename}
+                    </h2>
+                    <div className="text-[11px] text-slate-500 italic mt-0.5">
+                      Domain: {activeCustomDoc.category || 'Official Statistics'} • Uploaded Document
+                    </div>
+                  </div>
+
+                  <div className="space-y-3 text-xs leading-relaxed text-slate-800 whitespace-pre-line font-sans">
+                    {activeCustomDoc.textContent}
+                  </div>
+
+                  <div className="rounded border border-slate-200 bg-slate-50 p-3 text-[11px] font-sans">
+                    <strong>ChromaDB Ingestion Status:</strong> Indexed into vector collection with {activeCustomDoc.chunkCount} chunks. Available for semantic retrieval and automated quiz generation.
+                  </div>
+                </div>
+              );
+            }
+
+            // Default MoSPI Standards Manual
+            return (
+              <div
+                className="mx-auto max-w-2xl rounded-2xl border border-slate-700/60 bg-white text-slate-900 p-8 shadow-2xl space-y-4 font-serif"
+                style={{ zoom: `${pdfZoom}%` }}
+              >
+                <div className="text-center border-b-2 border-slate-900 pb-3">
+                  <div className="text-[10px] font-bold tracking-widest uppercase text-slate-600">
+                    GOVERNMENT OF INDIA • MINISTRY OF STATISTICS & PROGRAMME IMPLEMENTATION
+                  </div>
+                  <h2 className="text-lg font-black tracking-tight text-slate-900 mt-1">
+                    STANDARDS MANUAL FOR STATISTICAL TABLES AND GRAPHICS
+                  </h2>
+                  <div className="text-[11px] text-slate-500 italic mt-0.5">
+                    Circular No. 14/NSSTA/2025 • New Delhi
+                  </div>
+                </div>
+
+                <div className="space-y-3 text-xs leading-relaxed text-slate-800">
+                  <p>
+                    <strong>1. Executive Purpose:</strong> This directive standardizes the visual dissemination format for all survey bulletins released by the National Statistical Office (NSO). Compliance is mandatory across Central and Field Operations Divisions.
+                  </p>
+
+                  <p>
+                    <strong>2. Prohibited Visual Formats:</strong>
+                  </p>
+                  <ul className="list-disc pl-5 space-y-1">
+                    <li>3-Dimensional bar and pie representations under any circumstances.</li>
+                    <li>Truncation of horizontal or vertical origin baselines.</li>
+                    <li>Rainbow color maps without monotonically increasing luminance.</li>
+                  </ul>
+
+                  <p>
+                    <strong>3. Digital Accessibility:</strong> All color scales must pass WCAG AA standards (minimum 4.5:1 contrast against background canvas) to ensure accessibility for color-deficient readers.
+                  </p>
+
+                  <div className="rounded border border-slate-300 bg-slate-50 p-3 text-[11px] font-sans">
+                    <strong>Vector Metadata Notice:</strong> This manual has been ingested into ChromaDB (Collection: <code>materials</code>). AI Quiz generation parses Section 2 and 3 chunks to construct adaptive learner assessments.
+                  </div>
+                </div>
               </div>
-              <h2 className="text-lg font-black tracking-tight text-slate-900 mt-1">
-                STANDARDS MANUAL FOR STATISTICAL TABLES AND GRAPHICS
-              </h2>
-              <div className="text-[11px] text-slate-500 italic mt-0.5">
-                Circular No. 14/NSSTA/2025 • New Delhi
+            );
+          })()}
+
+          {/* AI Summary Modal / Overlay */}
+          {showSummaryModal && (
+            <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-xs">
+              <div className="relative w-full max-w-lg rounded-3xl bg-slate-900 border border-purple-500/30 text-white p-6 shadow-2xl space-y-4 max-h-[85vh] overflow-y-auto">
+                <div className="flex items-center justify-between border-b border-slate-800 pb-3">
+                  <div className="flex items-center gap-2 text-purple-400">
+                    <Sparkles className="h-5 w-5" />
+                    <h3 className="text-base font-bold text-white font-['Space_Grotesk']">
+                      AI Executive Summary & Key Directives
+                    </h3>
+                  </div>
+                  <button
+                    onClick={() => setShowSummaryModal(false)}
+                    className="p-1 rounded-full text-slate-400 hover:text-white hover:bg-slate-800"
+                  >
+                    <X className="h-4 w-4" />
+                  </button>
+                </div>
+
+                {isSummarizing ? (
+                  <div className="py-10 text-center space-y-3">
+                    <RefreshCw className="h-8 w-8 text-purple-400 animate-spin mx-auto" />
+                    <p className="text-xs text-slate-400">Extracting semantic key points and competencies...</p>
+                  </div>
+                ) : summaryData ? (
+                  <div className="space-y-4 text-xs">
+                    <div>
+                      <div className="text-[10px] uppercase font-bold text-slate-400 mb-1">Executive Summary</div>
+                      <p className="text-slate-200 leading-relaxed bg-slate-950/60 p-3 rounded-xl border border-slate-800">
+                        {summaryData.executiveSummary}
+                      </p>
+                    </div>
+
+                    <div>
+                      <div className="text-[10px] uppercase font-bold text-slate-400 mb-1">Core Learning Points</div>
+                      <ul className="space-y-1.5 list-disc pl-4 text-slate-300">
+                        {summaryData.keyPoints?.map((pt: string, idx: number) => (
+                          <li key={idx}>{pt}</li>
+                        ))}
+                      </ul>
+                    </div>
+
+                    {summaryData.detectedCompetencies?.length > 0 && (
+                      <div>
+                        <div className="text-[10px] uppercase font-bold text-slate-400 mb-1">Detected Competencies</div>
+                        <div className="flex flex-wrap gap-1.5">
+                          {summaryData.detectedCompetencies.map((c: string) => (
+                            <span key={c} className="rounded-full bg-purple-500/20 text-purple-300 text-[10px] font-bold px-2.5 py-0.5 border border-purple-500/30">
+                              {c}
+                            </span>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+
+                    <div className="pt-2 border-t border-slate-800 flex justify-end">
+                      <button
+                        onClick={() => setShowSummaryModal(false)}
+                        className="px-4 py-2 rounded-xl bg-purple-600 hover:bg-purple-500 text-white font-bold text-xs"
+                      >
+                        Close Summary
+                      </button>
+                    </div>
+                  </div>
+                ) : null}
               </div>
             </div>
-
-            <div className="space-y-3 text-xs leading-relaxed text-slate-800">
-              <p>
-                <strong>1. Executive Purpose:</strong> This directive standardizes the visual dissemination format for all survey bulletins released by the National Statistical Office (NSO). Compliance is mandatory across Central and Field Operations Divisions.
-              </p>
-
-              <p>
-                <strong>2. Prohibited Visual Formats:</strong>
-              </p>
-              <ul className="list-disc pl-5 space-y-1">
-                <li>3-Dimensional bar and pie representations under any circumstances.</li>
-                <li>Truncation of horizontal or vertical origin baselines.</li>
-                <li>Rainbow color maps without monotonically increasing luminance.</li>
-              </ul>
-
-              <p>
-                <strong>3. Digital Accessibility:</strong> All color scales must pass WCAG AA standards (minimum 4.5:1 contrast against background canvas) to ensure accessibility for color-deficient readers.
-              </p>
-
-              <div className="rounded border border-slate-300 bg-slate-50 p-3 text-[11px] font-sans">
-                <strong>Vector Metadata Notice:</strong> This manual has been ingested into ChromaDB (Collection: <code>materials</code>). AI Quiz generation parses Section 2 and 3 chunks to construct adaptive learner assessments.
-              </div>
-            </div>
-          </div>
+          )}
 
           {/* PDF Bottom Action */}
           <div className="flex items-center justify-between pt-3 border-t border-slate-800">

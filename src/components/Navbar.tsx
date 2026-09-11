@@ -22,16 +22,28 @@ import {
   LogOut,
   UserPlus,
   Mail,
-  Users
+  Users,
+  UploadCloud
 } from 'lucide-react';
+import { ScreenSizeController, ScreenViewMode } from './ScreenSizeController.js';
 
 interface NavbarProps {
   onOpenSearch: () => void;
   onNavigate: (page: string) => void;
   currentPage: string;
+  screenMode?: ScreenViewMode;
+  onScreenModeChange?: (mode: ScreenViewMode) => void;
+  onOpenUploadModal?: () => void;
 }
 
-export const Navbar: React.FC<NavbarProps> = ({ onOpenSearch, onNavigate, currentPage }) => {
+export const Navbar: React.FC<NavbarProps> = ({
+  onOpenSearch,
+  onNavigate,
+  currentPage,
+  screenMode = 'desktop',
+  onScreenModeChange = () => {},
+  onOpenUploadModal
+}) => {
   const { user, profile, role, loginAs, logout, switchAccount, savedAccounts, isAuthenticated } = useAuth();
   const [profileDropdownOpen, setProfileDropdownOpen] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -118,6 +130,13 @@ export const Navbar: React.FC<NavbarProps> = ({ onOpenSearch, onNavigate, curren
                 A+
               </button>
             </div>
+
+            {/* Screen Size & Viewport Controller */}
+            <ScreenSizeController
+              currentMode={screenMode}
+              onModeChange={onScreenModeChange}
+              variant="navbar"
+            />
 
             {/* Language Switcher */}
             <div className="flex items-center border border-slate-300 rounded overflow-hidden bg-white">
@@ -226,6 +245,18 @@ export const Navbar: React.FC<NavbarProps> = ({ onOpenSearch, onNavigate, curren
                 </span>
               </div>
             </div>
+
+            {/* Upload PDF & Notes Action Button */}
+            {onOpenUploadModal && (
+              <button
+                onClick={onOpenUploadModal}
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-orange-50 hover:bg-orange-100 border border-orange-200 text-orange-800 text-xs font-bold transition-all shadow-2xs cursor-pointer"
+                title="Upload PDF Manual or Create Study Notes"
+              >
+                <UploadCloud className="h-4 w-4 text-orange-600" />
+                <span className="hidden sm:inline">Upload Notes / PDF</span>
+              </button>
+            )}
 
             {/* Notifications */}
             <button

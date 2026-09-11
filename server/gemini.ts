@@ -471,3 +471,90 @@ function getFallbackDailyNugget(input: DailyNuggetTopicInput): DailyNugget {
   };
 }
 
+export interface DocumentSummaryResult {
+  executiveSummary: string;
+  keyPoints: string[];
+  detectedCompetencies: string[];
+  recommendedActionItems: string[];
+  readingTimeMinutes: number;
+}
+
+export async function generateDocumentSummary(
+  text: string,
+  filename: string
+): Promise<DocumentSummaryResult> {
+  const client = getGeminiClient();
+
+  if (client) {
+    try {
+      const prompt = `You are an expert educational and statistical research analyst for the Government of India.
+Summarize the following document or study notes titled "${filename}":
+
+CONTENT:
+${text.slice(0, 10000)}
+
+Provide:
+1. An executive summary (2-3 concise paragraphs).
+2. Exactly 4-5 bulleted key learning points.
+3. 2-3 detected competencies/domains (e.g., Data Visualization, Survey Methods, Official Statistics, Economic Indices, Public Administration).
+4. 2-3 recommended action items or study directives for officers/learners.
+`;
+
+      const response = await client.models.generateContent({
+        model: 'gemini-3.8-flash',
+        contents: prompt,
+        config: {
+          responseMimeType: 'application/json',
+          responseSchema: {
+            type: Type.OBJECT,
+            properties: {
+              executiveSummary: { type: Type.STRING },
+              keyPoints: { type: Type.ARRAY, items: { type: Type.STRING } },
+              detectedCompetencies: { type: Type.ARRAY, items: { type: Type.STRING } },
+              recommendedActionItems: { type: Type.ARRAY, items: { type: Type.STRING } }
+            },
+            required: ['executiveSummary', 'keyPoints', 'detectedCompetencies', 'recommendedActionItems']
+          }
+        }
+      });
+
+      if (response.text) {
+        const parsed = JSON.parse(response.text);
+        return {
+          ...parsed,
+          readingTimeMinutes: Math.max(1, Math.ceil(text.split(/\s+/).length / 200))
+        };
+      }
+    } catch (e) {
+      console.warn('Gemini summary failed, falling back to heuristic summarizer:', e);
+    }
+  }
+
+  // Heuristic statistical summary fallback
+  const lines = text.split('\n').map((l) => l.trim()).filter((l) => l.length > 20);
+  const detected: string[] = [];
+  const lower = text.toLowerCase();
+  if (lower.includes('chart') || lower.includes('visual') || lower.includes('plot')) detected.push('Data Visualization');
+  if (lower.includes('survey') || lower.includes('sample') || lower.includes('census')) detected.push('Survey Sampling & Methods');
+  if (lower.includes('inference') || lower.includes('hypothesis') || lower.includes('test')) detected.push('Statistical Inference');
+  if (lower.includes('cpi') || lower.includes('index') || lower.includes('price')) detected.push('Economic & Price Statistics');
+  if (detected.length === 0) detected.push('Official Government Statistics');
+
+  return {
+    executiveSummary: `This document ("${filename}") outlines foundational directives and conceptual methodologies for official data processing and policy governance. The material stresses compliance with empirical reporting rigor, baseline standardization, and systematic validation to ensure cross-departmental reliability.`,
+    keyPoints: [
+      lines[0] || 'Official dissemination requires strictly verified baselines and standard nomenclature.',
+      lines[1] || 'Minimizes cognitive decoding friction in public reporting tables and dashboards.',
+      lines[2] || 'Promotes alignment with National Statistical Academy quality assurance standards.',
+      lines[3] || 'Incorporates reproducible verification workflows across field operations.'
+    ],
+    detectedCompetencies: detected,
+    recommendedActionItems: [
+      'Complete the corresponding adaptive retention quiz to solidify core rules.',
+      'Review official guidelines and cross-reference with iGOT Karmayogi curriculum modules.',
+      'Verify adherence to WCAG AA color accessibility and baseline anchor criteria.'
+    ],
+    readingTimeMinutes: Math.max(1, Math.ceil(text.split(/\s+/).length / 200))
+  };
+}
+

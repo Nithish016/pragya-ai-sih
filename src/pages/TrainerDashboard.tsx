@@ -15,14 +15,17 @@ import {
   Eye,
   Check,
   X,
-  BookOpen
+  BookOpen,
+  Trash2,
+  Plus
 } from 'lucide-react';
 
 interface TrainerDashboardProps {
   onNavigate: (page: string) => void;
+  onOpenUploadModal?: () => void;
 }
 
-export const TrainerDashboard: React.FC<TrainerDashboardProps> = ({ onNavigate }) => {
+export const TrainerDashboard: React.FC<TrainerDashboardProps> = ({ onNavigate, onOpenUploadModal }) => {
   const { user, triggerConfetti } = useAuth();
 
   // Document pipeline state
@@ -86,6 +89,38 @@ export const TrainerDashboard: React.FC<TrainerDashboardProps> = ({ onNavigate }
       console.error(e);
     } finally {
       setIsUploading(false);
+    }
+  };
+
+  const handleFilePicked = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files[0]) {
+      const file = e.target.files[0];
+      setUploadFilename(file.name);
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        const text = event.target?.result;
+        if (typeof text === 'string') {
+          setUploadText(text);
+        } else {
+          setUploadText(
+            `OFFICIAL STATISTICAL GUIDELINES: ${file.name}\n` +
+            `Training manual ingested into MoSPI Capacity Repository. Adherence to baseline standards and sampling frames is required.`
+          );
+        }
+      };
+      reader.readAsText(file);
+    }
+  };
+
+  const handleDeleteDocument = async (id: string) => {
+    if (!window.confirm('Are you sure you want to remove this document from the vector store?')) return;
+    try {
+      const res = await fetch(`/api/documents/${id}`, { method: 'DELETE' });
+      if (res.ok) {
+        fetchMaterials();
+      }
+    } catch (e) {
+      console.error('Failed to delete document:', e);
     }
   };
 
@@ -185,8 +220,32 @@ export const TrainerDashboard: React.FC<TrainerDashboardProps> = ({ onNavigate }
           </div>
 
           <p className="text-xs text-slate-600">
-            Paste training text or statistical guidelines to process through the semantic chunking engine.
+            Select a PDF document, paste guidelines, or write revision notes to process through the semantic chunking engine.
           </p>
+
+          {/* Quick File Select Bar */}
+          <div className="flex items-center gap-2">
+            <label className="flex-1 flex items-center justify-center gap-2 px-3 py-2 rounded-xl border-2 border-dashed border-slate-300 hover:border-orange-500 bg-slate-50 hover:bg-orange-50/30 text-xs font-semibold text-slate-700 cursor-pointer transition-colors">
+              <UploadCloud className="h-4 w-4 text-orange-600" />
+              <span>Choose PDF / Text File to Load</span>
+              <input
+                type="file"
+                accept=".pdf,.txt,.md,.doc,.docx"
+                className="hidden"
+                onChange={handleFilePicked}
+              />
+            </label>
+
+            {onOpenUploadModal && (
+              <button
+                type="button"
+                onClick={onOpenUploadModal}
+                className="px-3 py-2 rounded-xl bg-orange-100 hover:bg-orange-200 text-orange-800 text-xs font-bold transition-colors shrink-0"
+              >
+                Studio Upload
+              </button>
+            )}
+          </div>
 
           <div className="space-y-3">
             <div>
@@ -219,10 +278,10 @@ export const TrainerDashboard: React.FC<TrainerDashboardProps> = ({ onNavigate }
                 </button>
               </div>
               <textarea
-                rows={5}
+                rows={4}
                 value={uploadText}
                 onChange={(e) => setUploadText(e.target.value)}
-                placeholder="Paste MoSPI manual or circular content here..."
+                placeholder="Paste MoSPI manual, survey guidelines, or notes here..."
                 className="w-full rounded-xl border border-slate-200 bg-[#F8FAFC] p-3 text-xs text-slate-800 focus:outline-none focus:border-[#0F2942]"
               />
             </div>
@@ -349,6 +408,101 @@ export const TrainerDashboard: React.FC<TrainerDashboardProps> = ({ onNavigate }
               )}
             </button>
           </div>
+        </div>
+      </div>
+
+      {/* Ingested Documents & Notes Vector Inventory */}
+      <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-xs space-y-4">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2.5">
+            <div className="p-2 rounded-xl bg-blue-100 text-blue-700">
+              <BookOpen className="h-5 w-5" />
+            </div>
+            <div>
+              <h2 className="text-base font-bold text-[#0F2942] font-['Space_Grotesk']">
+                Active Vector Store Inventory ({documents.length} Items)
+              </h2>
+              <p className="text-xs text-slate-500">
+                Official circulars, manuals, and trainer study notes indexed in ChromaDB for semantic search & RAG quiz generation.
+              </p>
+            </div>
+          </div>
+          {onOpenUploadModal && (
+            <button
+              onClick={onOpenUploadModal}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-orange-600 hover:bg-orange-700 text-white text-xs font-bold transition-all shadow-xs"
+            >
+              <Plus className="h-4 w-4" />
+              <span>Add PDF / Notes</span>
+            </button>
+          )}
+        </div>
+
+        <div className="overflow-x-auto">
+          <table className="w-full text-left text-xs">
+            <thead>
+              <tr className="border-b border-slate-200 bg-slate-50 text-[11px] font-bold uppercase text-slate-500">
+                <th className="py-2.5 px-3">Type</th>
+                <th className="py-2.5 px-3">Document Title / File</th>
+                <th className="py-2.5 px-3">Target Domain</th>
+                <th className="py-2.5 px-3 text-center">Vector Chunks</th>
+                <th className="py-2.5 px-3 text-right">Actions</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-slate-100">
+              {documents.map((doc) => (
+                <tr key={doc.id} className="hover:bg-slate-50/80 transition-colors">
+                  <td className="py-3 px-3 whitespace-nowrap">
+                    <span
+                      className={`inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-bold uppercase ${
+                        doc.fileType === 'note'
+                          ? 'bg-amber-100 text-amber-800 border border-amber-200'
+                          : 'bg-rose-100 text-rose-800 border border-rose-200'
+                      }`}
+                    >
+                      {doc.fileType === 'note' ? <BookOpen className="h-3 w-3" /> : <FileText className="h-3 w-3" />}
+                      {doc.fileType || 'PDF'}
+                    </span>
+                  </td>
+                  <td className="py-3 px-3">
+                    <div className="font-bold text-slate-800">{doc.title || doc.filename}</div>
+                    <div className="text-[11px] text-slate-400 font-mono line-clamp-1">
+                      ID: {doc.id} • {doc.uploadedAt ? new Date(doc.uploadedAt).toLocaleDateString() : 'Active'}
+                    </div>
+                  </td>
+                  <td className="py-3 px-3">
+                    <span className="rounded-full bg-slate-100 text-slate-700 px-2 py-0.5 text-[11px] font-semibold border border-slate-200">
+                      {doc.category || doc.competency || 'Official Statistics'}
+                    </span>
+                  </td>
+                  <td className="py-3 px-3 text-center font-mono font-bold text-emerald-600">
+                    {doc.chunkCount || doc.chunks || 4} chunks
+                  </td>
+                  <td className="py-3 px-3 text-right whitespace-nowrap">
+                    <div className="inline-flex items-center gap-1.5">
+                      <button
+                        onClick={() => {
+                          setSelectedDocId(doc.id);
+                          window.scrollTo({ top: 300, behavior: 'smooth' });
+                        }}
+                        className="px-2.5 py-1 rounded-lg bg-orange-50 hover:bg-orange-100 text-orange-700 font-semibold text-[11px] transition-colors"
+                        title="Use as source for AI Quiz Generation"
+                      >
+                        Select for RAG
+                      </button>
+                      <button
+                        onClick={() => handleDeleteDocument(doc.id)}
+                        className="p-1.5 rounded-lg text-slate-400 hover:text-rose-600 hover:bg-rose-50 transition-colors"
+                        title="Remove Document from Vector Store"
+                      >
+                        <Trash2 className="h-3.5 w-3.5" />
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
         </div>
       </div>
 
