@@ -39,7 +39,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ currentPage, onNavigate }) => 
     { id: 'topic_learning', label: '5-Mode Learning Studio', icon: BookOpen },
     { id: 'competencies', label: 'Competency Gaps (FRAC)', icon: TrendingUp, badge: '2 Gaps' },
     { id: 'recommendations', label: '12-Factor Recommendations', icon: Sparkles, badge: '94% Top' },
-    { id: 'games', label: 'Knowledge Run (Game)', icon: Gamepad2, badge: 'Play' },
+    { id: 'games', label: 'Python Kingdom (RPG)', icon: Gamepad2, badge: '🏰 RPG' },
     { id: 'quizzes', label: 'Adaptive AI Quizzes', icon: Brain, badge: 'Live' },
     { id: 'leaderboard', label: 'National Standings & Map', icon: Trophy, badge: '#3' },
     { id: 'achievements', label: 'Badges & Certificates', icon: Award, badge: '7 Badges' },

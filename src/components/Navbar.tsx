@@ -63,7 +63,7 @@ export const Navbar: React.FC<NavbarProps> = ({
     { id: 'course_map', label: lang === 'en' ? 'Learn Hub' : 'लर्न हब', icon: Layers },
     { id: 'competencies', label: lang === 'en' ? 'Competencies (FRAC)' : 'क्षमताएं', icon: Award },
     { id: 'recommendations', label: lang === 'en' ? 'Course Catalog' : 'कोर्स सूची', icon: Sparkles },
-    { id: 'games', label: lang === 'en' ? 'SkillQuest Games' : 'गेम्स व क्विज़', icon: Trophy },
+    { id: 'games', label: lang === 'en' ? '🏰 Python Kingdom' : '🏰 पायथन किंगडम', icon: Trophy },
     { id: 'leaderboard', label: lang === 'en' ? 'Leaderboard' : 'रैंकिंग', icon: Trophy },
   ];
 

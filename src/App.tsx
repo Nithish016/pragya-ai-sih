@@ -18,6 +18,7 @@ import { OnboardingPage } from './pages/OnboardingPage.js';
 import { TrainerDashboard } from './pages/TrainerDashboard.js';
 import { AdminDashboard } from './pages/AdminDashboard.js';
 import { LoginPage } from './pages/LoginPage.js';
+import { PythonKingdomPage } from './pages/PythonKingdomPage.js';
 import { RotateCcw, X, Smartphone, Tablet, Laptop, Monitor } from 'lucide-react';
 
 function MainLayout() {
@@ -29,9 +30,8 @@ function MainLayout() {
   const [initialTopicMode, setInitialTopicMode] = useState<'video' | 'ebook' | 'pdf' | 'game' | 'quiz'>('video');
 
   const handleNavigate = (page: string, params?: any) => {
-    if (page === 'games') {
-      setCurrentPage('topic_learning');
-      setInitialTopicMode('game');
+    if (page === 'games' || page === 'python_kingdom') {
+      setCurrentPage('python_kingdom');
     } else if (page === 'quizzes') {
       setCurrentPage('topic_learning');
       setInitialTopicMode('quiz');
@@ -157,6 +157,7 @@ function MainLayout() {
               {currentPage === 'leaderboard' && <LeaderboardPage onNavigate={handleNavigate} />}
               {currentPage === 'achievements' && <AchievementsPage onNavigate={handleNavigate} />}
               {currentPage === 'onboarding' && <OnboardingPage onNavigate={handleNavigate} />}
+              {currentPage === 'python_kingdom' && <PythonKingdomPage onNavigate={handleNavigate} />}
 
               {/* Trainer Pages */}
               {(currentPage === 'trainer' ||

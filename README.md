@@ -44,13 +44,41 @@ The platform transforms dense official guidelines, survey manuals, and statistic
   - **Mobile Simulator (390px)**: Centered iPhone/Android frame with status bar and notch.
 - **Fullscreen Mode**: Quick toggle for native browser fullscreen (`F11`).
 
-### 4. 🎮 Gamification & Competency Tracking
+### 4. 🏰 Python Kingdom RPG Adventure
+A branching, narrative-driven gamified programming odyssey for officers and statistical analysts to master Python:
+
+```plaintext
+                         🏰 PYTHON KINGDOM
+                                │
+              ┌─────────────────┴─────────────────┐
+              │                                   │
+        🌲 Variable Forest                  🏜️ Logic Desert
+              │                                   │
+        🧩 Solve puzzles                    ⚔️ Battle enemies
+              │                                   │
+              └──────────────┬────────────────────┘
+                             │
+                       🏔️ Loop Mountains
+                             │
+                     🎯 Complete missions
+                             │
+                        🏰 Function Castle
+                             │
+                        👑 FINAL BOSS
+```
+
+- **🌲 Variable Forest (🧩 Solve Puzzles)**: Type alchemy, memory allocation, string interpolation (f-strings), and list mutations.
+- **🏜️ Logic Desert (⚔️ Battle Enemies)**: Turn-based combat where combatants execute boolean algebra, compound conditionals (`and`, `or`, `not`), and pythonic ternary statements to damage syntax monsters.
+- **🏔️ Loop Mountains (🎯 Complete Missions)**: Ascend iteratively through for-loop accumulators, step parameters (`range`), while-loop break logic, and single-line list comprehensions.
+- **🏰 Function Castle (👑 FINAL BOSS)**: Defeat the *Bug Overlord (Recursion Dragon)* using modular functions (`def`), return values, `*args`/`**kwargs` spell shields, and lambda sorting strikes.
+
+### 5. 🎮 Gamification & Competency Tracking
 - **Karma Points & Badges**: Earn XP and coins for completing learning modules, daily goals, and quizzes.
 - **Daily Streak Tracker**: Consecutive day counter with bonus multiplier rewards.
 - **National Standings Map**: Interactive state-wise India map visualizing departmental training performance and leaderboard rankings.
 - **FRAC Competency Radar**: Live multi-axis radar chart mapping proficiency across MoSPI operational domains.
 
-### 5. 👨‍🏫 Trainer & Admin Portals
+### 6. 👨‍🏫 Trainer & Admin Portals
 - **Human-in-the-Loop (HITL) Review**: Trainers inspect, edit, approve, or reject AI-generated questions before publishing.
 - **iGOT Karmayogi API Integration**: Sync course catalogs, user competencies, and completion certificates.
 
@@ -140,6 +168,8 @@ pragya-ai-sih/
 │       ├── LandingPage.tsx          # Official portal homepage
 │       ├── LearnerDashboard.tsx     # Officer personal learning dashboard
 │       ├── TopicLearningPage.tsx    # 5-mode multimodal learning & PDF/notes hub
+│       ├── PythonKingdomPage.tsx    # 🏰 Python Kingdom 4-realm RPG adventure
+│       ├── CourseMapPage.tsx        # Accredited course journey & RPG gateway
 │       ├── TrainerDashboard.tsx     # Document ingestion & HITL question review
 │       ├── AdminDashboard.tsx       # Departmental governance & iGOT sync
 │       └── LoginPage.tsx            # Multi-role authentication page

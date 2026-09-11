@@ -14,7 +14,8 @@ import {
   FileText,
   Brain,
   X,
-  BookOpen
+  BookOpen,
+  Castle
 } from 'lucide-react';
 
 interface CourseMapPageProps {
@@ -114,6 +115,35 @@ export const CourseMapPage: React.FC<CourseMapPageProps> = ({ onNavigate }) => {
             <span>World 3: Dissemination</span>
           </button>
         </div>
+      </div>
+
+      {/* Featured Quest: Python Kingdom RPG */}
+      <div
+        onClick={() => onNavigate('games')}
+        className="rounded-3xl border border-amber-500/40 bg-gradient-to-r from-slate-950 via-slate-900 to-amber-950/70 p-5 sm:p-6 text-white shadow-xl flex flex-col sm:flex-row items-center justify-between gap-4 cursor-pointer hover:border-amber-500/70 transition-all group"
+      >
+        <div className="flex items-center gap-4">
+          <div className="p-3.5 rounded-2xl bg-gradient-to-br from-amber-500 to-orange-600 text-slate-950 font-black shadow-lg shadow-amber-500/20 group-hover:scale-105 transition-transform">
+            <Castle className="h-7 w-7" />
+          </div>
+          <div>
+            <div className="flex items-center gap-2">
+              <span className="text-base sm:text-lg font-black font-['Space_Grotesk'] text-white">
+                🏰 Special RPG Quest: PYTHON KINGDOM
+              </span>
+              <span className="rounded-full bg-amber-500/20 text-amber-300 text-[10px] font-bold px-2.5 py-0.5 border border-amber-500/30">
+                New Adventure
+              </span>
+            </div>
+            <p className="text-xs text-slate-300 mt-0.5 max-w-xl">
+              Branch across 🌲 Variable Forest (solve puzzles), 🏜️ Logic Desert (battle enemies), 🏔️ Loop Mountains (complete missions), and storm 🏰 Function Castle to defeat the 👑 FINAL BOSS!
+            </p>
+          </div>
+        </div>
+        <button className="px-4 py-2 rounded-xl bg-gradient-to-r from-amber-500 to-orange-500 text-slate-950 font-bold text-xs shadow-md group-hover:shadow-amber-500/20 flex items-center gap-1.5 shrink-0 transition-all cursor-pointer">
+          <span>Enter Kingdom</span>
+          <ArrowRight className="h-3.5 w-3.5 group-hover:translate-x-1 transition-transform" />
+        </button>
       </div>
 
       {/* World 1 Map Canvas */}
